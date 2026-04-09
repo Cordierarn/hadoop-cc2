@@ -22,41 +22,19 @@
 
 ## 1. Preparation de l'environnement
 
-### 1.1 Telechargement et extraction du dataset
+> Toutes les commandes ci-dessous sont a executer sur la sandbox HDP, connecte en SSH en tant que `maria_dev`.
+
+### Etape 1 - Telechargement et extraction du dataset
 
 ```bash
-# Telechargement du dataset MovieLens 25M
+cd ~
 wget https://files.grouplens.org/datasets/movielens/ml-25m.zip
-
-# Extraction
 unzip ml-25m.zip
 ```
 
-**Resultat (dans mon cas, les fichiers étaient déjà présents):**
-```
-Archive:  ml-25m.zip                                                                                                                                                                                               
-replace ml-25m/tags.csv? [y]es, [n]o, [A]ll, [N]one, [r]ename: y                                                                                                                                                   
-  inflating: ml-25m/tags.csv                                                                                                                                                                                       
-replace ml-25m/links.csv? [y]es, [n]o, [A]ll, [N]one, [r]ename: a                                                                                                                                                  
-error:  invalid response [a]                                                                                                                                                                                       
-replace ml-25m/links.csv? [y]es, [n]o, [A]ll, [N]one, [r]ename: y                                                                                                                                                  
-  inflating: ml-25m/links.csv                                                                                                                                                                                      
-replace ml-25m/README.txt? [y]es, [n]o, [A]ll, [N]one, [r]ename: y                                                                                                                                                 
-  inflating: ml-25m/README.txt                                                                                                                                                                                     
-replace ml-25m/ratings.csv? [y]es, [n]o, [A]ll, [N]one, [r]ename: y                                                                                                                                                
-  inflating: ml-25m/ratings.csv                                                                                                                                                                                    
-replace ml-25m/genome-tags.csv? [y]es, [n]o, [A]ll, [N]one, [r]ename: y                                                                                                                                            
-  inflating: ml-25m/genome-tags.csv                                                                                                                                                                                
-replace ml-25m/genome-scores.csv? [y]es, [n]o, [A]ll, [N]one, [r]ename: y                                                                                                                                          
-  inflating: ml-25m/genome-scores.csv                                                                                                                                                                              
-replace ml-25m/movies.csv? [y]es, [n]o, [A]ll, [N]one, [r]ename: y                                                                                                                                                 
-  inflating: ml-25m/movies.csv                
-```
-
-### 1.2 Exploration du fichier tags.csv
+### Etape 2 - Exploration du fichier tags.csv
 
 ```bash
-# Apercu des premieres lignes
 head -5 ml-25m/tags.csv
 ```
 
@@ -76,70 +54,74 @@ Le fichier `tags.csv` est au format CSV (separe par des virgules) avec 4 colonne
 - `timestamp` : horodatage UNIX
 
 ```bash
-# Taille du fichier
 ls -lh ml-25m/tags.csv
-```
-
-**Resultat :**
-```
--rw-rw-r-- 1 maria_dev maria_dev 38M Nov 21  2019 ml-25m/tags.csv
-```
-
-```bash
-# Nombre de lignes
 wc -l ml-25m/tags.csv
 ```
 
 **Resultat :**
 ```
+-rw-rw-r-- 1 maria_dev maria_dev 38M Nov 21  2019 ml-25m/tags.csv
 1093361 ml-25m/tags.csv
 ```
 
-Le fichier contient **1 093 360 tags**.
+Le fichier fait **37 Mo** et contient **1 093 360 tags** (+ 1 ligne d'en-tete).
 
-### 1.3 Creation d'un fichier d'echantillon pour les tests
+### Etape 3 - Creation d'un fichier d'echantillon pour les tests
 
 Avant de lancer les jobs sur le fichier complet, on cree un petit echantillon pour valider nos scripts :
 
 ```bash
-head -1 ml-25m/tags.csv > tags_test.csv
-head -20 ml-25m/tags.csv >> tags_test.csv
+head -1 ml-25m/tags.csv > ~/tags_test.csv
+tail -n +2 ml-25m/tags.csv | head -20 >> ~/tags_test.csv
 ```
 
-### 1.4 Chargement des fichiers dans HDFS (configuration par defaut)
+### Etape 4 - Chargement des fichiers dans HDFS
+
+On charge le fichier dans HDFS avec deux configurations differentes :
 
 ```bash
-# Creation du repertoire sur HDFS
+# Configuration par defaut (blocs de 128 Mo)
 hdfs dfs -mkdir -p /user/maria_dev/cc2/input
+hdfs dfs -put ~/ml-25m/tags.csv /user/maria_dev/cc2/input/tags.csv
+hdfs dfs -put ~/tags_test.csv /user/maria_dev/cc2/input/tags_test.csv
 
-# Chargement du fichier tags.csv (config par defaut : blocs de 128 Mo)
-hdfs dfs -put ml-25m/tags.csv /user/maria_dev/cc2/input/tags.csv
-
-# Chargement du fichier d'echantillon
-hdfs dfs -put tags_test.csv /user/maria_dev/cc2/input/tags_test.csv
-
-hdfs dfs -ls /user/maria_dev/cc2/input/
+# Configuration avec blocs de 64 Mo
+hdfs dfs -mkdir -p /user/maria_dev/cc2/input_64mb
+hdfs dfs -D dfs.blocksize=67108864 -put ~/ml-25m/tags.csv /user/maria_dev/cc2/input_64mb/tags.csv
 ```
 
-### 1.5 Recuperation des scripts Python sur la sandbox
+Verification :
+```bash
+hdfs dfs -ls /user/maria_dev/cc2/input/
+hdfs dfs -ls /user/maria_dev/cc2/input_64mb/
+```
 
-Les scripts MRJob sont disponibles dans le repertoire [`scripts/`](scripts/) du repo GitHub. On les recupere directement sur la sandbox avec `wget` :
+### Etape 5 - Recuperation des scripts Python sur la sandbox
+
+Les scripts MRJob sont disponibles dans le repertoire [`scripts/`](scripts/) du repo GitHub. On les recupere directement avec `wget` :
 
 ```bash
-# Creation du repertoire scripts sur la sandbox
 mkdir -p ~/scripts
-
-# Telechargement des scripts depuis le repo GitHub
-wget -O ~/scripts/tags_par_film.py https://raw.githubusercontent.com/Cordierarn/hadoop-cc2/main/scripts/tags_par_film.py
-wget -O ~/scripts/tags_par_utilisateur.py https://raw.githubusercontent.com/Cordierarn/hadoop-cc2/main/scripts/tags_par_utilisateur.py
-wget -O ~/scripts/comptage_tags.py https://raw.githubusercontent.com/Cordierarn/hadoop-cc2/main/scripts/comptage_tags.py
-wget -O ~/scripts/tags_par_utilisateur_film.py https://raw.githubusercontent.com/Cordierarn/hadoop-cc2/main/scripts/tags_par_utilisateur_film.py
+wget -O ~/scripts/tags_par_film.py https://raw.githubusercontent.com/Cordierarn/hadoop-cc2/master/scripts/tags_par_film.py
+wget -O ~/scripts/tags_par_utilisateur.py https://raw.githubusercontent.com/Cordierarn/hadoop-cc2/master/scripts/tags_par_utilisateur.py
+wget -O ~/scripts/comptage_tags.py https://raw.githubusercontent.com/Cordierarn/hadoop-cc2/master/scripts/comptage_tags.py
+wget -O ~/scripts/tags_par_utilisateur_film.py https://raw.githubusercontent.com/Cordierarn/hadoop-cc2/master/scripts/tags_par_utilisateur_film.py
 ```
 
 Verification :
 ```bash
 ls -la ~/scripts/
 ```
+
+**Resultat attendu :**
+```
+tags_par_film.py
+tags_par_utilisateur.py
+comptage_tags.py
+tags_par_utilisateur_film.py
+```
+
+L'environnement est pret. On peut maintenant repondre aux questions.
 
 ---
 
@@ -174,33 +156,31 @@ if __name__ == '__main__':
 ```
 
 **Logique MapReduce :**
-- **Mapper** : pour chaque ligne, on crée une paire clé,valeur `(movieId, 1)`. On ignore la ligne d'en-tete et on encapsule dans un `try/except` pour gerer les lignes malformées.
-- **Reducer** : somme toutes les valeurs pour chaque `movieId`, donnant le nombre total de tags par film.
+- **Mapper** : pour chaque ligne, on cree une paire cle/valeur `(id_film, 1)`. On ignore la ligne d'en-tete et on encapsule dans un `try/except` pour gerer les lignes malformees.
+- **Reducer** : somme toutes les valeurs pour chaque `id_film`, donnant le nombre total de tags par film.
 
-**Test sur l'echantillon :**
+**Etape 6 - Test sur l'echantillon :**
 
 ```bash
-python ~/scripts/tags_par_films.py -r hadoop \
+python ~/scripts/tags_par_film.py -r hadoop \
   --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
   hdfs:///user/maria_dev/cc2/input/tags_test.csv \
   -o hdfs:///user/maria_dev/cc2/output/q1_sample
 ```
 
+Affichage du resultat :
 ```bash
 hdfs dfs -cat /user/maria_dev/cc2/output/q1_sample/part-*
 ```
 
-**Resultat attendu sur l'echantillon :**
+**Resultat attendu :**
 ```
-"100"   4
-"200"   4
-"300"   3
-"400"   3
+"260"   2
+"1732"  2
+...
 ```
 
-Verification manuelle : le film 100 a 4 tags (sci-fi x2, action, classic), le film 200 a 4 tags (comedy x2, funny, feel-good) -- c'est correct.
-
-**Execution sur le fichier complet :**
+**Etape 7 - Execution sur le fichier complet :**
 
 ```bash
 python ~/scripts/tags_par_film.py -r hadoop \
@@ -209,13 +189,13 @@ python ~/scripts/tags_par_film.py -r hadoop \
   -o hdfs:///user/maria_dev/cc2/output/q1_tags_par_film
 ```
 
-**Recuperation des resultats :**
-
+Recuperation du fichier de resultats :
 ```bash
-hdfs dfs -getmerge /user/maria_dev/cc2/output/q1_tags_par_film q1_tags_par_film.txt
+hdfs dfs -getmerge /user/maria_dev/cc2/output/q1_tags_par_film ~/q1_tags_par_film.txt
+head -20 ~/q1_tags_par_film.txt
 ```
 
-**Analyse :** Le job a traite **1 093 360 enregistrements** (Map input records) et produit **45 251 films** distincts (Reduce output records). Le fichier de resultats contient le nombre de tags pour chacun des 45 251 films presents dans le dataset. Ce fichier etant volumineux, il est disponible sur le repo GitHub.
+**Analyse :** Le job a traite **1 093 360 enregistrements** et produit **45 251 films** distincts. Le fichier de resultats contient le nombre de tags pour chacun des 45 251 films presents dans le dataset. Ce fichier etant volumineux, il est disponible sur le repo GitHub.
 
 > **Fichier resultat :** [q1_tags_par_film.txt](https://github.com/Cordierarn/hadoop-cc2/blob/main/results/q1_tags_par_film/q1_tags_par_film.txt)
 
@@ -278,7 +258,7 @@ if __name__ == '__main__':
 - **Mapper** : pour chaque ligne, on cree une paire cle/valeur `(id_utilisateur, 1)`.
 - **Reducer** : somme toutes les valeurs pour chaque `id_utilisateur`, donnant le nombre total de tags par utilisateur.
 
-**Test sur l'echantillon :**
+**Etape 8 - Test sur l'echantillon :**
 
 ```bash
 python ~/scripts/tags_par_utilisateur.py -r hadoop \
@@ -291,18 +271,7 @@ python ~/scripts/tags_par_utilisateur.py -r hadoop \
 hdfs dfs -cat /user/maria_dev/cc2/output/q2_sample/part-*
 ```
 
-**Resultat attendu sur l'echantillon :**
-```
-"1"     3
-"2"     3
-"3"     4
-"4"     2
-"5"     4
-```
-
-Verification : l'utilisateur 1 a 3 tags, l'utilisateur 3 en a 4 -- c'est correct.
-
-**Execution sur le fichier complet :**
+**Etape 9 - Execution sur le fichier complet :**
 
 ```bash
 python ~/scripts/tags_par_utilisateur.py -r hadoop \
@@ -311,13 +280,13 @@ python ~/scripts/tags_par_utilisateur.py -r hadoop \
   -o hdfs:///user/maria_dev/cc2/output/q2_tags_par_utilisateur
 ```
 
-**Recuperation des resultats :**
-
+Recuperation du fichier de resultats :
 ```bash
-hdfs dfs -getmerge /user/maria_dev/cc2/output/q2_tags_par_utilisateur q2_tags_par_utilisateur.txt
+hdfs dfs -getmerge /user/maria_dev/cc2/output/q2_tags_par_utilisateur ~/q2_tags_par_utilisateur.txt
+head -20 ~/q2_tags_par_utilisateur.txt
 ```
 
-**Analyse :** Le job a produit **14 592 utilisateurs** distincts (Reduce output records). Le fichier de resultats contient le nombre de tags pour chacun des 14 592 utilisateurs. Ce fichier etant volumineux, il est disponible sur le repo GitHub.
+**Analyse :** Le job a produit **14 592 utilisateurs** distincts. Le fichier de resultats contient le nombre de tags pour chacun des 14 592 utilisateurs.
 
 > **Fichier resultat :** [q2_tags_par_utilisateur.txt](https://github.com/Cordierarn/hadoop-cc2/blob/main/results/q2_tags_par_utilisateur/q2_tags_par_utilisateur.txt)
 
@@ -358,9 +327,9 @@ Pour cette question, on compare le nombre de blocs dans deux configurations :
 1. **Configuration par defaut** : taille de bloc = 128 Mo
 2. **Configuration modifiee** : taille de bloc = 64 Mo
 
-#### Configuration par defaut (128 Mo)
+Le fichier a deja ete charge dans les deux configurations a l'etape 4.
 
-Le fichier `tags.csv` a deja ete charge dans HDFS avec la configuration par defaut.
+**Etape 10 - Verification des blocs (config par defaut, 128 Mo) :**
 
 ```bash
 hdfs fsck /user/maria_dev/cc2/input/tags.csv -files -blocks
@@ -373,22 +342,10 @@ hdfs fsck /user/maria_dev/cc2/input/tags.csv -files -blocks
 
 Status: HEALTHY
  Total size:	38810332 B
- Total dirs:	0
- Total files:	1
  Total blocks (validated):	1 (avg. block size 38810332 B)
 ```
 
-**Analyse :** Le fichier `tags.csv` fait **37 Mo** (38 810 332 octets). Avec une taille de bloc par defaut de **128 Mo**, le fichier tient entierement dans **1 seul bloc** car 37 Mo < 128 Mo.
-
-#### Configuration avec blocs de 64 Mo
-
-On charge le fichier avec une taille de bloc de 64 Mo :
-
-```bash
-# Charger le fichier avec des blocs de 64 Mo
-hdfs dfs -mkdir -p /user/maria_dev/cc2/input_64mb
-hdfs dfs -D dfs.blocksize=67108864 -put ml-25m/tags.csv /user/maria_dev/cc2/input_64mb/tags.csv
-```
+**Etape 11 - Verification des blocs (config 64 Mo) :**
 
 ```bash
 hdfs fsck /user/maria_dev/cc2/input_64mb/tags.csv -files -blocks
@@ -401,14 +358,10 @@ hdfs fsck /user/maria_dev/cc2/input_64mb/tags.csv -files -blocks
 
 Status: HEALTHY
  Total size:	38810332 B
- Total dirs:	0
- Total files:	1
  Total blocks (validated):	1 (avg. block size 38810332 B)
 ```
 
-**Analyse :** Avec une taille de bloc de **64 Mo**, le fichier de 37 Mo tient egalement dans **1 seul bloc** car 37 Mo < 64 Mo. Le fichier n'est pas assez volumineux pour etre decoupe en plusieurs blocs, meme avec des blocs de 64 Mo.
-
-#### Tableau recapitulatif
+**Analyse :**
 
 | Configuration | Taille de bloc | Taille du fichier | Nombre de blocs |
 |---|---|---|---|
@@ -419,7 +372,7 @@ Status: HEALTHY
 - 128 Mo : `ceil(37 / 128) = 1`
 - 64 Mo : `ceil(37 / 64) = 1`
 
-> **Remarque :** Pour observer une difference de nombre de blocs entre les deux configurations, il faudrait un fichier de plus de 64 Mo. Ici le fichier `tags.csv` (37 Mo) est inferieur aux deux tailles de bloc, donc il occupe un seul bloc dans les deux cas.
+> **Remarque :** Le fichier `tags.csv` fait 37 Mo, ce qui est inferieur aux deux tailles de bloc (64 Mo et 128 Mo). Il occupe donc **1 seul bloc** dans les deux configurations. Pour observer une difference, il faudrait un fichier de plus de 64 Mo.
 
 ---
 
@@ -454,9 +407,7 @@ if __name__ == '__main__':
 - **Mapper** : pour chaque ligne, extrait le tag (colonnes entre `movieId` et `timestamp`). On utilise `','.join(elements[2:-1])` pour gerer les tags contenant des virgules. Le tag est normalise en minuscules avec `.lower()` pour regrouper les variantes de casse. Emet `(tag, 1)`.
 - **Reducer** : somme les occurrences pour chaque tag.
 
-> **Note :** Cette question doit etre executee avec le fichier charge avec des blocs de 64 Mo.
-
-**Test sur l'echantillon :**
+**Etape 12 - Test sur l'echantillon :**
 
 ```bash
 python ~/scripts/comptage_tags.py -r hadoop \
@@ -469,23 +420,7 @@ python ~/scripts/comptage_tags.py -r hadoop \
 hdfs dfs -cat /user/maria_dev/cc2/output/q4_sample/part-*
 ```
 
-**Resultat attendu sur l'echantillon :**
-```
-"action"        1
-"classic"       1
-"comedy"        3
-"drama"         2
-"feel-good"     1
-"funny"         1
-"horror"        2
-"intense"       1
-"scary"         1
-"sci-fi"        3
-```
-
-Verification : "sci-fi" apparait 3 fois (user 1 film 100, user 2 film 100, user 4 film 100) -- c'est correct.
-
-**Execution sur le fichier complet (blocs de 64 Mo) :**
+**Etape 13 - Execution sur le fichier complet (blocs de 64 Mo) :**
 
 ```bash
 python ~/scripts/comptage_tags.py -r hadoop \
@@ -494,13 +429,13 @@ python ~/scripts/comptage_tags.py -r hadoop \
   -o hdfs:///user/maria_dev/cc2/output/q4_comptage_tags
 ```
 
-**Recuperation des resultats :**
-
+Recuperation du fichier de resultats :
 ```bash
-hdfs dfs -getmerge /user/maria_dev/cc2/output/q4_comptage_tags q4_comptage_tags.txt
+hdfs dfs -getmerge /user/maria_dev/cc2/output/q4_comptage_tags ~/q4_comptage_tags.txt
+head -20 ~/q4_comptage_tags.txt
 ```
 
-**Analyse :** Le job a identifie **65 414 tags uniques** (Reduce output records). Le fichier de resultats contient la frequence d'utilisation de chaque tag. Ce fichier etant volumineux, il est disponible sur le repo GitHub.
+**Analyse :** Le job a identifie **65 414 tags uniques**. Le fichier de resultats contient la frequence d'utilisation de chaque tag.
 
 > **Fichier resultat :** [q4_comptage_tags.txt](https://github.com/Cordierarn/hadoop-cc2/blob/main/results/q4_comptage_tags/q4_comptage_tags.txt)
 
@@ -564,9 +499,7 @@ if __name__ == '__main__':
 - **Mapper** : pour chaque ligne, on cree une paire cle/valeur `(id_film + TAB + id_utilisateur, 1)`. La cle composite `id_film\tid_utilisateur` permet de regrouper les tags par couple (film, utilisateur).
 - **Reducer** : somme les valeurs pour chaque couple `(id_film, id_utilisateur)`, donnant le nombre de tags qu'un meme utilisateur a attribues a un meme film.
 
-> **Note :** Cette question doit etre executee avec le fichier charge avec des blocs de 64 Mo.
-
-**Test sur l'echantillon :**
+**Etape 14 - Test sur l'echantillon :**
 
 ```bash
 python ~/scripts/tags_par_utilisateur_film.py -r hadoop \
@@ -579,22 +512,7 @@ python ~/scripts/tags_par_utilisateur_film.py -r hadoop \
 hdfs dfs -cat /user/maria_dev/cc2/output/q5_sample/part-*
 ```
 
-**Resultat attendu sur l'echantillon :**
-```
-"100\t1"        2
-"100\t2"        2
-"100\t4"        1
-"200\t3"        2
-"200\t5"        2
-"300\t2"        1
-"300\t3"        2
-"400\t4"        1
-"400\t5"        2
-```
-
-Verification : l'utilisateur 1 a mis 2 tags sur le film 100 (sci-fi, action), l'utilisateur 2 a mis 2 tags sur le film 100 (sci-fi, classic) -- c'est correct.
-
-**Execution sur le fichier complet (blocs de 64 Mo) :**
+**Etape 15 - Execution sur le fichier complet (blocs de 64 Mo) :**
 
 ```bash
 python ~/scripts/tags_par_utilisateur_film.py -r hadoop \
@@ -603,13 +521,13 @@ python ~/scripts/tags_par_utilisateur_film.py -r hadoop \
   -o hdfs:///user/maria_dev/cc2/output/q5_tags_par_utilisateur_film
 ```
 
-**Recuperation des resultats :**
-
+Recuperation du fichier de resultats :
 ```bash
-hdfs dfs -getmerge /user/maria_dev/cc2/output/q5_tags_par_utilisateur_film q5_tags_par_utilisateur_film.txt
+hdfs dfs -getmerge /user/maria_dev/cc2/output/q5_tags_par_utilisateur_film ~/q5_tags_par_utilisateur_film.txt
+head -20 ~/q5_tags_par_utilisateur_film.txt
 ```
 
-**Analyse :** Le job a produit **305 356 couples (film, utilisateur)** distincts (Reduce output records). Le fichier de resultats contient, pour chaque couple, le nombre de tags que cet utilisateur a attribues a ce film. Ce fichier etant volumineux, il est disponible sur le repo GitHub.
+**Analyse :** Le job a produit **305 356 couples (film, utilisateur)** distincts. Le fichier de resultats contient, pour chaque couple, le nombre de tags que cet utilisateur a attribues a ce film.
 
 > **Fichier resultat :** [q5_tags_par_utilisateur_film.txt](https://github.com/Cordierarn/hadoop-cc2/blob/main/results/q5_tags_par_utilisateur_film/q5_tags_par_utilisateur_film.txt)
 
@@ -638,65 +556,4 @@ hdfs dfs -getmerge /user/maria_dev/cc2/output/q5_tags_par_utilisateur_film q5_ta
 "100038\t70092"	1
 ```
 
-Le format de sortie est `"movieId\tuserId" nombre_de_tags`. Par exemple, l'utilisateur **6550** a ajoute **7 tags** au film **100017**, tandis que l'utilisateur **14116** a ajoute **9 tags** au film **100034**. On observe que certains utilisateurs sont tres actifs sur certains films.
-
----
-
-## Recapitulatif des commandes
-
-### Preparation
-
-```bash
-# Telechargement et extraction
-wget https://files.grouplens.org/datasets/movielens/ml-25m.zip
-unzip ml-25m.zip
-
-# Chargement dans HDFS (config par defaut, blocs de 128 Mo)
-hdfs dfs -mkdir -p /user/maria_dev/cc2/input
-hdfs dfs -put ml-25m/tags.csv /user/maria_dev/cc2/input/tags.csv
-
-# Chargement dans HDFS (blocs de 64 Mo)
-hdfs dfs -D dfs.blocksize=67108864 -put ml-25m/tags.csv /user/maria_dev/cc2/input_64mb/tags.csv
-```
-
-### Execution des jobs MapReduce
-
-```bash
-# Q1 - Tags par film (config par defaut)
-python ~/scripts/tags_par_film.py -r hadoop \
-  --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
-  hdfs:///user/maria_dev/cc2/input/tags.csv \
-  -o hdfs:///user/maria_dev/cc2/output/q1_tags_par_film
-
-# Q2 - Tags par utilisateur (config par defaut)
-python ~/scripts/tags_par_utilisateur.py -r hadoop \
-  --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
-  hdfs:///user/maria_dev/cc2/input/tags.csv \
-  -o hdfs:///user/maria_dev/cc2/output/q2_tags_par_utilisateur
-
-# Q3 - Nombre de blocs
-hdfs fsck /user/maria_dev/cc2/input/tags.csv -files -blocks
-hdfs fsck /user/maria_dev/cc2/input_64mb/tags.csv -files -blocks
-
-# Q4 - Frequence d'utilisation des tags (blocs de 64 Mo)
-python ~/scripts/comptage_tags.py -r hadoop \
-  --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
-  hdfs:///user/maria_dev/cc2/input_64mb/tags.csv \
-  -o hdfs:///user/maria_dev/cc2/output/q4_comptage_tags
-
-# Q5 - Tags par utilisateur par film (blocs de 64 Mo)
-python ~/scripts/tags_par_utilisateur_film.py -r hadoop \
-  --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
-  hdfs:///user/maria_dev/cc2/input_64mb/tags.csv \
-  -o hdfs:///user/maria_dev/cc2/output/q5_tags_par_utilisateur_film
-```
-
-### Recuperation des resultats
-
-```bash
-# Recuperer les fichiers de resultats depuis HDFS
-hdfs dfs -getmerge /user/maria_dev/cc2/output/q1_tags_par_film q1_tags_par_film.txt
-hdfs dfs -getmerge /user/maria_dev/cc2/output/q2_tags_par_utilisateur q2_tags_par_utilisateur.txt
-hdfs dfs -getmerge /user/maria_dev/cc2/output/q4_comptage_tags q4_comptage_tags.txt
-hdfs dfs -getmerge /user/maria_dev/cc2/output/q5_tags_par_utilisateur_film q5_tags_par_utilisateur_film.txt
-```
+Le format de sortie est `"id_film\tid_utilisateur" nombre_de_tags`. Par exemple, l'utilisateur **6550** a ajoute **7 tags** au film **100017**, tandis que l'utilisateur **14116** a ajoute **9 tags** au film **100034**. On observe que certains utilisateurs sont tres actifs sur certains films.
