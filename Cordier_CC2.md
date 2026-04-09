@@ -121,17 +121,24 @@ hdfs dfs -put tags_test.csv /user/maria_dev/cc2/input/tags_test.csv
 hdfs dfs -ls /user/maria_dev/cc2/input/
 ```
 
-### 1.5 Transfert des scripts Python vers la sandbox
+### 1.5 Recuperation des scripts Python sur la sandbox
 
-Les scripts MRJob utilises sont disponibles dans le repertoire [`scripts/`](scripts/) du repo GitHub :
-- [`tags_par_film.py`](scripts/tags_par_film.py) - Q1
-- [`tags_par_utilisateur.py`](scripts/tags_par_utilisateur.py) - Q2
-- [`comptage_tags.py`](scripts/comptage_tags.py) - Q4
-- [`tags_par_utilisateur_film.py`](scripts/tags_par_utilisateur_film.py) - Q5
+Les scripts MRJob sont disponibles dans le repertoire [`scripts/`](scripts/) du repo GitHub. On les recupere directement sur la sandbox avec `wget` :
 
 ```bash
-# Sur la sandbox, creer le repertoire scripts et y placer les fichiers
-hdfs dfs -mkdir -p scripts 
+# Creation du repertoire scripts sur la sandbox
+mkdir -p ~/scripts
+
+# Telechargement des scripts depuis le repo GitHub
+wget -O ~/scripts/tags_par_film.py https://raw.githubusercontent.com/Cordierarn/hadoop-cc2/main/scripts/tags_par_film.py
+wget -O ~/scripts/tags_par_utilisateur.py https://raw.githubusercontent.com/Cordierarn/hadoop-cc2/main/scripts/tags_par_utilisateur.py
+wget -O ~/scripts/comptage_tags.py https://raw.githubusercontent.com/Cordierarn/hadoop-cc2/main/scripts/comptage_tags.py
+wget -O ~/scripts/tags_par_utilisateur_film.py https://raw.githubusercontent.com/Cordierarn/hadoop-cc2/main/scripts/tags_par_utilisateur_film.py
+```
+
+Verification :
+```bash
+ls -la ~/scripts/
 ```
 
 ---
