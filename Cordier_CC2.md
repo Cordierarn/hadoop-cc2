@@ -281,7 +281,7 @@ head -20 ~/q2_tags_par_utilisateur.txt
 
 **Analyse :** Le job a produit **14 592 utilisateurs** distincts. Le fichier de résultats contient le nombre de tags pour chacun des 14 592 utilisateurs.
 
-> **Fichier résultat :** [q2_tags_par_utilisateur.txt](https://github.com/Cordierarn/hadoop-cc2/blob/main/results/q2_tags_par_utilisateur/q2_tags_par_utilisateur.txt)
+> **Fichier résultat :** [q2_tags_par_utilisateur.txt](https://github.com/Cordierarn/hadoop-cc2/blob/master/results/q2_tags_par_utilisateur/q2_tags_par_utilisateur.txt)
 
 **Extrait des 20 premiers résultats :**
 
