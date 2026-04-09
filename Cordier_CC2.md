@@ -162,10 +162,7 @@ if __name__ == '__main__':
 **Etape 6 - Test sur l'echantillon :**
 
 ```bash
-python ~/scripts/tags_par_film.py -r hadoop \
-  --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
-  hdfs:///user/maria_dev/cc2/input/tags_test.csv \
-  -o hdfs:///user/maria_dev/cc2/output/q1_sample
+python ~/scripts/tags_par_film.py -r hadoop --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar hdfs:///user/maria_dev/cc2/input/tags_test.csv -o hdfs:///user/maria_dev/cc2/output/q1_sample
 ```
 
 Affichage du resultat :
@@ -175,18 +172,15 @@ hdfs dfs -cat /user/maria_dev/cc2/output/q1_sample/part-*
 
 **Resultat attendu :**
 ```
-"260"   2
-"1732"  2
+"115569"        1                                 
+"115713"        3 
 ...
 ```
 
 **Etape 7 - Execution sur le fichier complet :**
 
 ```bash
-python ~/scripts/tags_par_film.py -r hadoop \
-  --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
-  hdfs:///user/maria_dev/cc2/input/tags.csv \
-  -o hdfs:///user/maria_dev/cc2/output/q1_tags_par_film
+python ~/scripts/tags_par_film.py -r hadoop --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar hdfs:///user/maria_dev/cc2/input/tags.csv -o hdfs:///user/maria_dev/cc2/output/q1_tags_par_film
 ```
 
 Recuperation du fichier de resultats :
@@ -261,10 +255,7 @@ if __name__ == '__main__':
 **Etape 8 - Test sur l'echantillon :**
 
 ```bash
-python ~/scripts/tags_par_utilisateur.py -r hadoop \
-  --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
-  hdfs:///user/maria_dev/cc2/input/tags_test.csv \
-  -o hdfs:///user/maria_dev/cc2/output/q2_sample
+python ~/scripts/tags_par_utilisateur.py -r hadoop --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar hdfs:///user/maria_dev/cc2/input/tags_test.csv -o hdfs:///user/maria_dev/cc2/output/q2_sample
 ```
 
 ```bash
@@ -274,10 +265,7 @@ hdfs dfs -cat /user/maria_dev/cc2/output/q2_sample/part-*
 **Etape 9 - Execution sur le fichier complet :**
 
 ```bash
-python ~/scripts/tags_par_utilisateur.py -r hadoop \
-  --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
-  hdfs:///user/maria_dev/cc2/input/tags.csv \
-  -o hdfs:///user/maria_dev/cc2/output/q2_tags_par_utilisateur
+python ~/scripts/tags_par_utilisateur.py -r hadoop --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar hdfs:///user/maria_dev/cc2/input/tags.csv -o hdfs:///user/maria_dev/cc2/output/q2_tags_par_utilisateur
 ```
 
 Recuperation du fichier de resultats :
@@ -410,10 +398,7 @@ if __name__ == '__main__':
 **Etape 12 - Test sur l'echantillon :**
 
 ```bash
-python ~/scripts/comptage_tags.py -r hadoop \
-  --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
-  hdfs:///user/maria_dev/cc2/input/tags_test.csv \
-  -o hdfs:///user/maria_dev/cc2/output/q4_sample
+python ~/scripts/comptage_tags.py -r hadoop --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar hdfs:///user/maria_dev/cc2/input/tags_test.csv -o hdfs:///user/maria_dev/cc2/output/q4_sample
 ```
 
 ```bash
@@ -423,10 +408,7 @@ hdfs dfs -cat /user/maria_dev/cc2/output/q4_sample/part-*
 **Etape 13 - Execution sur le fichier complet (blocs de 64 Mo) :**
 
 ```bash
-python ~/scripts/comptage_tags.py -r hadoop \
-  --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
-  hdfs:///user/maria_dev/cc2/input_64mb/tags.csv \
-  -o hdfs:///user/maria_dev/cc2/output/q4_comptage_tags
+python ~/scripts/comptage_tags.py -r hadoop --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar hdfs:///user/maria_dev/cc2/input_64mb/tags.csv -o hdfs:///user/maria_dev/cc2/output/q4_comptage_tags
 ```
 
 Recuperation du fichier de resultats :
@@ -502,10 +484,7 @@ if __name__ == '__main__':
 **Etape 14 - Test sur l'echantillon :**
 
 ```bash
-python ~/scripts/tags_par_utilisateur_film.py -r hadoop \
-  --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
-  hdfs:///user/maria_dev/cc2/input/tags_test.csv \
-  -o hdfs:///user/maria_dev/cc2/output/q5_sample
+python ~/scripts/tags_par_utilisateur_film.py -r hadoop --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar hdfs:///user/maria_dev/cc2/input/tags_test.csv -o hdfs:///user/maria_dev/cc2/output/q5_sample
 ```
 
 ```bash
@@ -515,10 +494,7 @@ hdfs dfs -cat /user/maria_dev/cc2/output/q5_sample/part-*
 **Etape 15 - Execution sur le fichier complet (blocs de 64 Mo) :**
 
 ```bash
-python ~/scripts/tags_par_utilisateur_film.py -r hadoop \
-  --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
-  hdfs:///user/maria_dev/cc2/input_64mb/tags.csv \
-  -o hdfs:///user/maria_dev/cc2/output/q5_tags_par_utilisateur_film
+python ~/scripts/tags_par_utilisateur_film.py -r hadoop --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar hdfs:///user/maria_dev/cc2/input_64mb/tags.csv -o hdfs:///user/maria_dev/cc2/output/q5_tags_par_utilisateur_film
 ```
 
 Recuperation du fichier de resultats :
