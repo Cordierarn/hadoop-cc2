@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(ssh-keygen -t rsa -f ~/.ssh/id_rsa -N \"\" -q)",
+      "Read(//c/Users/acordier/.ssh/**)",
+      "Bash(ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa -v maria_dev@localhost -p 2222 \"echo SSH_OK\")",
+      "Bash(ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa maria_dev@localhost -p 2222 \"echo SSH_OK\")"
+    ]
+  }
+}
