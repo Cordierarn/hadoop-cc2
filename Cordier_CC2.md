@@ -427,7 +427,7 @@ head -20 ~/q4_comptage_tags.txt
 
 **Analyse :** Le job a identifié **65 414 tags uniques**. Le fichier de résultats contient la fréquence d'utilisation de chaque tag.
 
-> **Fichier résultat :** [q4_comptage_tags.txt](https://github.com/Cordierarn/hadoop-cc2/blob/main/results/q4_comptage_tags/q4_comptage_tags.txt)
+> **Fichier résultat :** [q4_comptage_tags.txt](https://github.com/Cordierarn/hadoop-cc2/blob/master/results/q4_comptage_tags/q4_comptage_tags.txt)
 
 **Extrait des 20 premiers résultats :**
 
@@ -516,7 +516,7 @@ head -20 ~/q5_tags_par_utilisateur_film.txt
 
 **Analyse :** Le job a produit **305 356 couples (film, utilisateur)** distincts. Le fichier de résultats contient, pour chaque couple, le nombre de tags que cet utilisateur a attribués à ce film.
 
-> **Fichier résultat :** [q5_tags_par_utilisateur_film.txt](https://github.com/Cordierarn/hadoop-cc2/blob/main/results/q5_tags_par_utilisateur_film/q5_tags_par_utilisateur_film.txt)
+> **Fichier résultat :** [q5_tags_par_utilisateur_film.txt](https://github.com/Cordierarn/hadoop-cc2/blob/master/results/q5_tags_par_utilisateur_film/q5_tags_par_utilisateur_film.txt)
 
 **Extrait des 20 premiers résultats :**
 
