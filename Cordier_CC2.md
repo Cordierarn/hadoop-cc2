@@ -3,7 +3,7 @@
 **Auteur :** Cordier  
 **Date :** 09/04/2026  
 **Fichier source :** `ml-25m/tags.csv`  
-**Repo GitHub :** [https://github.com/VOTRE_UTILISATEUR_GITHUB/CC2](https://github.com/VOTRE_UTILISATEUR_GITHUB/CC2)
+**Repo GitHub :** [https://github.com/Cordierarn/hadoop-cc2](https://github.com/Cordierarn/hadoop-cc2)
 
 ---
 
@@ -204,7 +204,7 @@ hdfs dfs -getmerge /user/maria_dev/cc2/output/q1_tags_per_movie q1_tags_per_movi
 
 **Analyse :** Le job a traite **1 093 360 enregistrements** (Map input records) et produit **45 251 films** distincts (Reduce output records). Le fichier de resultats contient le nombre de tags pour chacun des 45 251 films presents dans le dataset. Ce fichier etant volumineux, il est disponible sur le repo GitHub.
 
-> **Fichier resultat :** [q1_tags_per_movie.txt](https://github.com/VOTRE_UTILISATEUR_GITHUB/CC2/blob/main/results/q1_tags_per_movie/q1_tags_per_movie.txt)
+> **Fichier resultat :** [q1_tags_per_movie.txt](https://github.com/Cordierarn/hadoop-cc2/blob/main/results/q1_tags_per_movie/q1_tags_per_movie.txt)
 
 **Extrait des 20 premiers resultats :**
 
@@ -306,7 +306,7 @@ hdfs dfs -getmerge /user/maria_dev/cc2/output/q2_tags_per_user q2_tags_per_user.
 
 **Analyse :** Le job a produit **14 592 utilisateurs** distincts (Reduce output records). Le fichier de resultats contient le nombre de tags pour chacun des 14 592 utilisateurs. Ce fichier etant volumineux, il est disponible sur le repo GitHub.
 
-> **Fichier resultat :** [q2_tags_per_user.txt](https://github.com/VOTRE_UTILISATEUR_GITHUB/CC2/blob/main/results/q2_tags_per_user/q2_tags_per_user.txt)
+> **Fichier resultat :** [q2_tags_per_user.txt](https://github.com/Cordierarn/hadoop-cc2/blob/main/results/q2_tags_per_user/q2_tags_per_user.txt)
 
 **Extrait des 20 premiers resultats :**
 
@@ -489,7 +489,7 @@ hdfs dfs -getmerge /user/maria_dev/cc2/output/q4_tag_usage_count q4_tag_usage_co
 
 **Analyse :** Le job a identifie **65 414 tags uniques** (Reduce output records). Le fichier de resultats contient la frequence d'utilisation de chaque tag. Ce fichier etant volumineux, il est disponible sur le repo GitHub.
 
-> **Fichier resultat :** [q4_tag_usage_count.txt](https://github.com/VOTRE_UTILISATEUR_GITHUB/CC2/blob/main/results/q4_tag_usage_count/q4_tag_usage_count.txt)
+> **Fichier resultat :** [q4_tag_usage_count.txt](https://github.com/Cordierarn/hadoop-cc2/blob/main/results/q4_tag_usage_count/q4_tag_usage_count.txt)
 
 **Extrait des 20 premiers resultats :**
 
@@ -598,7 +598,7 @@ hdfs dfs -getmerge /user/maria_dev/cc2/output/q5_tags_per_user_movie q5_tags_per
 
 **Analyse :** Le job a produit **305 356 couples (film, utilisateur)** distincts (Reduce output records). Le fichier de resultats contient, pour chaque couple, le nombre de tags que cet utilisateur a attribues a ce film. Ce fichier etant volumineux, il est disponible sur le repo GitHub.
 
-> **Fichier resultat :** [q5_tags_per_user_movie.txt](https://github.com/VOTRE_UTILISATEUR_GITHUB/CC2/blob/main/results/q5_tags_per_user_movie/q5_tags_per_user_movie.txt)
+> **Fichier resultat :** [q5_tags_per_user_movie.txt](https://github.com/Cordierarn/hadoop-cc2/blob/main/results/q5_tags_per_user_movie/q5_tags_per_user_movie.txt)
 
 **Extrait des 20 premiers resultats :**
 
