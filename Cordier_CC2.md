@@ -9,14 +9,14 @@
 
 ## Table des matières
 
-1. [Préparation de l'environnement](#1-preparation-de-lenvironnement)
-2. [Partie 1 - Configuration Hadoop par défaut](#2-partie-1---configuration-hadoop-par-defaut)
+1. [Préparation de l'environnement](#1-préparation-de-lenvironnement)
+2. [Partie 1 - Configuration Hadoop par défaut](#2-partie-1---configuration-hadoop-par-défaut)
    - [Q1 - Tags par film](#q1---combien-de-tags-chaque-film-possède-t-il-)
-   - [Q2 - Tags par utilisateur](#q2---combien-de-tags-chaque-utilisateur-a-t-il-ajoutes-)
+   - [Q2 - Tags par utilisateur](#q2---combien-de-tags-chaque-utilisateur-a-t-il-ajoutés-)
 3. [Partie 2 - Configuration Hadoop avec blocs de 64 Mo](#3-partie-2---configuration-hadoop-avec-blocs-de-64-mo)
    - [Q3 - Nombre de blocs HDFS](#q3---combien-de-blocs-le-fichier-occupe-t-il-dans-hdfs-)
-   - [Q4 - Fréquence d'utilisation de chaque tag](#q4---combien-de-fois-chaque-tag-a-t-il-ete-utilise-)
-   - [Q5 - Tags par utilisateur par film](#q5---pour-chaque-film-combien-de-tags-le-meme-utilisateur-a-t-il-introduits-)
+   - [Q4 - Fréquence d'utilisation de chaque tag](#q4---combien-de-fois-chaque-tag-a-t-il-été-utilisé-)
+   - [Q5 - Tags par utilisateur par film](#q5---pour-chaque-film-combien-de-tags-le-même-utilisateur-a-t-il-introduits-)
 
 ---
 
@@ -227,7 +227,7 @@ On observe par exemple que le film **1** possède **697 tags**, ce qui en fait u
 
 ### Q2 - Combien de tags chaque utilisateur a-t-il ajoutés ?
 
-**Script :** `scripts/tags_par_utilisateur.py`
+**Script :** [`scripts/tags_par_utilisateur.py`](https://github.com/Cordierarn/hadoop-cc2/blob/master/scripts/tags_par_utilisateur.py)
 ```python
 from mrjob.job import MRJob
 
@@ -273,6 +273,9 @@ python ~/scripts/tags_par_utilisateur.py -r hadoop --hadoop-streaming-jar /usr/h
 Récupération du fichier de résultats :
 ```bash
 hdfs dfs -getmerge /user/maria_dev/cc2/output/q2_tags_par_utilisateur ~/q2_tags_par_utilisateur.txt
+```
+Puis
+```bash
 head -20 ~/q2_tags_par_utilisateur.txt
 ```
 
@@ -416,6 +419,9 @@ python ~/scripts/comptage_tags.py -r hadoop --hadoop-streaming-jar /usr/hdp/curr
 Récupération du fichier de résultats :
 ```bash
 hdfs dfs -getmerge /user/maria_dev/cc2/output/q4_comptage_tags ~/q4_comptage_tags.txt
+```
+Puis
+```bash
 head -20 ~/q4_comptage_tags.txt
 ```
 
@@ -502,6 +508,9 @@ python ~/scripts/tags_par_utilisateur_film.py -r hadoop --hadoop-streaming-jar /
 Récupération du fichier de résultats :
 ```bash
 hdfs dfs -getmerge /user/maria_dev/cc2/output/q5_tags_par_utilisateur_film ~/q5_tags_par_utilisateur_film.txt
+```
+Puis
+```bash
 head -20 ~/q5_tags_par_utilisateur_film.txt
 ```
 
