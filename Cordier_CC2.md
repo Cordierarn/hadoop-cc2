@@ -1,6 +1,6 @@
 # CC2 - Pratique Hadoop MapReduce
 
-**Auteur :** Cordier  
+**Auteur :** Chabanel Tristan, Desvalcy Andrew, Cordier Arnaud  
 **Date :** 09/04/2026  
 **Fichier source :** `ml-25m/tags.csv`  
 **Repo GitHub :** [https://github.com/Cordierarn/hadoop-cc2](https://github.com/Cordierarn/hadoop-cc2)
@@ -32,17 +32,25 @@ wget https://files.grouplens.org/datasets/movielens/ml-25m.zip
 unzip ml-25m.zip
 ```
 
-**Resultat :**
+**Resultat (dans mon cas, les fichiers étaient déjà présents):**
 ```
-Archive:  ml-25m.zip
-   creating: ml-25m/
-  inflating: ml-25m/tags.csv
-  inflating: ml-25m/links.csv
-  inflating: ml-25m/README.txt
-  inflating: ml-25m/ratings.csv
-  inflating: ml-25m/movies.csv
-  inflating: ml-25m/genome-tags.csv
-  inflating: ml-25m/genome-scores.csv
+Archive:  ml-25m.zip                                                                                                                                                                                               
+replace ml-25m/tags.csv? [y]es, [n]o, [A]ll, [N]one, [r]ename: y                                                                                                                                                   
+  inflating: ml-25m/tags.csv                                                                                                                                                                                       
+replace ml-25m/links.csv? [y]es, [n]o, [A]ll, [N]one, [r]ename: a                                                                                                                                                  
+error:  invalid response [a]                                                                                                                                                                                       
+replace ml-25m/links.csv? [y]es, [n]o, [A]ll, [N]one, [r]ename: y                                                                                                                                                  
+  inflating: ml-25m/links.csv                                                                                                                                                                                      
+replace ml-25m/README.txt? [y]es, [n]o, [A]ll, [N]one, [r]ename: y                                                                                                                                                 
+  inflating: ml-25m/README.txt                                                                                                                                                                                     
+replace ml-25m/ratings.csv? [y]es, [n]o, [A]ll, [N]one, [r]ename: y                                                                                                                                                
+  inflating: ml-25m/ratings.csv                                                                                                                                                                                    
+replace ml-25m/genome-tags.csv? [y]es, [n]o, [A]ll, [N]one, [r]ename: y                                                                                                                                            
+  inflating: ml-25m/genome-tags.csv                                                                                                                                                                                
+replace ml-25m/genome-scores.csv? [y]es, [n]o, [A]ll, [N]one, [r]ename: y                                                                                                                                          
+  inflating: ml-25m/genome-scores.csv                                                                                                                                                                              
+replace ml-25m/movies.csv? [y]es, [n]o, [A]ll, [N]one, [r]ename: y                                                                                                                                                 
+  inflating: ml-25m/movies.csv                
 ```
 
 ### 1.2 Exploration du fichier tags.csv
@@ -87,15 +95,15 @@ wc -l ml-25m/tags.csv
 1093361 ml-25m/tags.csv
 ```
 
-Le fichier contient **1 093 360 tags** (+ 1 ligne d'en-tete).
+Le fichier contient **1 093 360 tags**.
 
 ### 1.3 Creation d'un fichier d'echantillon pour les tests
 
 Avant de lancer les jobs sur le fichier complet, on cree un petit echantillon pour valider nos scripts :
 
 ```bash
-head -1 ml-25m/tags.csv > tags_sample.csv
-head -20 ml-25m/tags.csv >> tags_sample.csv
+head -1 ml-25m/tags.csv > tags_test.csv
+head -20 ml-25m/tags.csv >> tags_test.csv
 ```
 
 ### 1.4 Chargement des fichiers dans HDFS (configuration par defaut)
@@ -108,24 +116,22 @@ hdfs dfs -mkdir -p /user/maria_dev/cc2/input
 hdfs dfs -put ml-25m/tags.csv /user/maria_dev/cc2/input/tags.csv
 
 # Chargement du fichier d'echantillon
-hdfs dfs -put tags_sample.csv /user/maria_dev/cc2/input/tags_sample.csv
+hdfs dfs -put tags_test.csv /user/maria_dev/cc2/input/tags_test.csv
 
-# Verification
 hdfs dfs -ls /user/maria_dev/cc2/input/
 ```
 
 ### 1.5 Transfert des scripts Python vers la sandbox
 
 Les scripts MRJob utilises sont disponibles dans le repertoire [`scripts/`](scripts/) du repo GitHub :
-- [`tags_per_movie.py`](scripts/tags_per_movie.py) - Q1
-- [`tags_per_user.py`](scripts/tags_per_user.py) - Q2
-- [`tag_usage_count.py`](scripts/tag_usage_count.py) - Q4
-- [`tags_per_user_movie.py`](scripts/tags_per_user_movie.py) - Q5
+- [`tags_par_film.py`](scripts/tags_par_film.py) - Q1
+- [`tags_par_utilisateur.py`](scripts/tags_par_utilisateur.py) - Q2
+- [`comptage_tags.py`](scripts/comptage_tags.py) - Q4
+- [`tags_par_utilisateur_film.py`](scripts/tags_par_utilisateur_film.py) - Q5
 
 ```bash
 # Sur la sandbox, creer le repertoire scripts et y placer les fichiers
-mkdir -p ~/scripts
-# (transferer les fichiers via scp ou les creer directement avec nano/vi)
+hdfs dfs -mkdir -p scripts 
 ```
 
 ---
@@ -136,40 +142,40 @@ mkdir -p ~/scripts
 
 ### Q1 - Combien de tags chaque film possede-t-il ?
 
-**Script :** [`scripts/tags_per_movie.py`](scripts/tags_per_movie.py)
+**Script :** [`scripts/tags_par_film.py`](scripts/tags_par_film.py)
 
 ```python
 from mrjob.job import MRJob
 
-class TagsPerMovie(MRJob):
+class TagsParFilm(MRJob):
 
-    def mapper(self, _, line):
+    def mapper(self, _, ligne):
         try:
-            parts = line.split(',')
-            if parts[0] == 'userId':
+            elements = ligne.split(',')
+            if elements[0] == 'userId':
                 return  # ignorer l'en-tete
-            movieId = parts[1]
-            yield movieId, 1
+            id_film = elements[1]
+            yield id_film, 1
         except Exception:
             pass
 
-    def reducer(self, movieId, counts):
-        yield movieId, sum(counts)
+    def reducer(self, id_film, occurences):
+        yield id_film, sum(occurences)
 
 if __name__ == '__main__':
-    TagsPerMovie.run()
+    TagsParFilm.run()
 ```
 
 **Logique MapReduce :**
-- **Mapper** : pour chaque ligne, emet `(movieId, 1)`. On ignore la ligne d'en-tete et on encapsule dans un `try/except` pour gerer les lignes malformees.
+- **Mapper** : pour chaque ligne, on crée une paire clé,valeur `(movieId, 1)`. On ignore la ligne d'en-tete et on encapsule dans un `try/except` pour gerer les lignes malformées.
 - **Reducer** : somme toutes les valeurs pour chaque `movieId`, donnant le nombre total de tags par film.
 
 **Test sur l'echantillon :**
 
 ```bash
-python ~/scripts/tags_per_movie.py -r hadoop \
+python ~/scripts/tags_par_films.py -r hadoop \
   --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
-  hdfs:///user/maria_dev/cc2/input/tags_sample.csv \
+  hdfs:///user/maria_dev/cc2/input/tags_test.csv \
   -o hdfs:///user/maria_dev/cc2/output/q1_sample
 ```
 
@@ -190,21 +196,21 @@ Verification manuelle : le film 100 a 4 tags (sci-fi x2, action, classic), le fi
 **Execution sur le fichier complet :**
 
 ```bash
-python ~/scripts/tags_per_movie.py -r hadoop \
+python ~/scripts/tags_par_film.py -r hadoop \
   --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
   hdfs:///user/maria_dev/cc2/input/tags.csv \
-  -o hdfs:///user/maria_dev/cc2/output/q1_tags_per_movie
+  -o hdfs:///user/maria_dev/cc2/output/q1_tags_par_film
 ```
 
 **Recuperation des resultats :**
 
 ```bash
-hdfs dfs -getmerge /user/maria_dev/cc2/output/q1_tags_per_movie q1_tags_per_movie.txt
+hdfs dfs -getmerge /user/maria_dev/cc2/output/q1_tags_par_film q1_tags_par_film.txt
 ```
 
 **Analyse :** Le job a traite **1 093 360 enregistrements** (Map input records) et produit **45 251 films** distincts (Reduce output records). Le fichier de resultats contient le nombre de tags pour chacun des 45 251 films presents dans le dataset. Ce fichier etant volumineux, il est disponible sur le repo GitHub.
 
-> **Fichier resultat :** [q1_tags_per_movie.txt](https://github.com/Cordierarn/hadoop-cc2/blob/main/results/q1_tags_per_movie/q1_tags_per_movie.txt)
+> **Fichier resultat :** [q1_tags_par_film.txt](https://github.com/Cordierarn/hadoop-cc2/blob/main/results/q1_tags_par_film/q1_tags_par_film.txt)
 
 **Extrait des 20 premiers resultats :**
 
@@ -237,40 +243,40 @@ On observe par exemple que le film **1** (Toy Story) possede **697 tags**, ce qu
 
 ### Q2 - Combien de tags chaque utilisateur a-t-il ajoutes ?
 
-**Script :** [`scripts/tags_per_user.py`](scripts/tags_per_user.py)
+**Script :** [`scripts/tags_par_utilisateur.py`](scripts/tags_par_utilisateur.py)
 
 ```python
 from mrjob.job import MRJob
 
-class TagsPerUser(MRJob):
+class TagsParUtilisateur(MRJob):
 
-    def mapper(self, _, line):
+    def mapper(self, _, ligne):
         try:
-            parts = line.split(',')
-            if parts[0] == 'userId':
+            elements = ligne.split(',')
+            if elements[0] == 'userId':
                 return  # ignorer l'en-tete
-            userId = parts[0]
-            yield userId, 1
+            id_utilisateur = elements[0]
+            yield id_utilisateur, 1
         except Exception:
             pass
 
-    def reducer(self, userId, counts):
-        yield userId, sum(counts)
+    def reducer(self, id_utilisateur, occurences):
+        yield id_utilisateur, sum(occurences)
 
 if __name__ == '__main__':
-    TagsPerUser.run()
+    TagsParUtilisateur.run()
 ```
 
 **Logique MapReduce :**
-- **Mapper** : pour chaque ligne, emet `(userId, 1)`.
-- **Reducer** : somme toutes les valeurs pour chaque `userId`, donnant le nombre total de tags par utilisateur.
+- **Mapper** : pour chaque ligne, on cree une paire cle/valeur `(id_utilisateur, 1)`.
+- **Reducer** : somme toutes les valeurs pour chaque `id_utilisateur`, donnant le nombre total de tags par utilisateur.
 
 **Test sur l'echantillon :**
 
 ```bash
-python ~/scripts/tags_per_user.py -r hadoop \
+python ~/scripts/tags_par_utilisateur.py -r hadoop \
   --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
-  hdfs:///user/maria_dev/cc2/input/tags_sample.csv \
+  hdfs:///user/maria_dev/cc2/input/tags_test.csv \
   -o hdfs:///user/maria_dev/cc2/output/q2_sample
 ```
 
@@ -292,21 +298,21 @@ Verification : l'utilisateur 1 a 3 tags, l'utilisateur 3 en a 4 -- c'est correct
 **Execution sur le fichier complet :**
 
 ```bash
-python ~/scripts/tags_per_user.py -r hadoop \
+python ~/scripts/tags_par_utilisateur.py -r hadoop \
   --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
   hdfs:///user/maria_dev/cc2/input/tags.csv \
-  -o hdfs:///user/maria_dev/cc2/output/q2_tags_per_user
+  -o hdfs:///user/maria_dev/cc2/output/q2_tags_par_utilisateur
 ```
 
 **Recuperation des resultats :**
 
 ```bash
-hdfs dfs -getmerge /user/maria_dev/cc2/output/q2_tags_per_user q2_tags_per_user.txt
+hdfs dfs -getmerge /user/maria_dev/cc2/output/q2_tags_par_utilisateur q2_tags_par_utilisateur.txt
 ```
 
 **Analyse :** Le job a produit **14 592 utilisateurs** distincts (Reduce output records). Le fichier de resultats contient le nombre de tags pour chacun des 14 592 utilisateurs. Ce fichier etant volumineux, il est disponible sur le repo GitHub.
 
-> **Fichier resultat :** [q2_tags_per_user.txt](https://github.com/Cordierarn/hadoop-cc2/blob/main/results/q2_tags_per_user/q2_tags_per_user.txt)
+> **Fichier resultat :** [q2_tags_par_utilisateur.txt](https://github.com/Cordierarn/hadoop-cc2/blob/main/results/q2_tags_par_utilisateur/q2_tags_par_utilisateur.txt)
 
 **Extrait des 20 premiers resultats :**
 
@@ -412,33 +418,33 @@ Status: HEALTHY
 
 ### Q4 - Combien de fois chaque tag a-t-il ete utilise ?
 
-**Script :** [`scripts/tag_usage_count.py`](scripts/tag_usage_count.py)
+**Script :** [`scripts/comptage_tags.py`](scripts/comptage_tags.py)
 
 ```python
 from mrjob.job import MRJob
 
-class TagUsageCount(MRJob):
+class ComptageTags(MRJob):
 
-    def mapper(self, _, line):
+    def mapper(self, _, ligne):
         try:
-            parts = line.split(',')
-            if parts[0] == 'userId':
+            elements = ligne.split(',')
+            if elements[0] == 'userId':
                 return  # ignorer l'en-tete
             # Le tag peut contenir des virgules : on prend tout entre movieId et timestamp
-            tag = ','.join(parts[2:-1]).strip().lower()
+            tag = ','.join(elements[2:-1]).strip().lower()
             yield tag, 1
         except Exception:
             pass
 
-    def reducer(self, tag, counts):
-        yield tag, sum(counts)
+    def reducer(self, tag, occurences):
+        yield tag, sum(occurences)
 
 if __name__ == '__main__':
-    TagUsageCount.run()
+    ComptageTags.run()
 ```
 
 **Logique MapReduce :**
-- **Mapper** : pour chaque ligne, extrait le tag (colonnes entre `movieId` et `timestamp`). On utilise `','.join(parts[2:-1])` pour gerer les tags contenant des virgules. Le tag est normalise en minuscules avec `.lower()` pour regrouper les variantes de casse. Emet `(tag, 1)`.
+- **Mapper** : pour chaque ligne, extrait le tag (colonnes entre `movieId` et `timestamp`). On utilise `','.join(elements[2:-1])` pour gerer les tags contenant des virgules. Le tag est normalise en minuscules avec `.lower()` pour regrouper les variantes de casse. Emet `(tag, 1)`.
 - **Reducer** : somme les occurrences pour chaque tag.
 
 > **Note :** Cette question doit etre executee avec le fichier charge avec des blocs de 64 Mo.
@@ -446,9 +452,9 @@ if __name__ == '__main__':
 **Test sur l'echantillon :**
 
 ```bash
-python ~/scripts/tag_usage_count.py -r hadoop \
+python ~/scripts/comptage_tags.py -r hadoop \
   --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
-  hdfs:///user/maria_dev/cc2/input/tags_sample.csv \
+  hdfs:///user/maria_dev/cc2/input/tags_test.csv \
   -o hdfs:///user/maria_dev/cc2/output/q4_sample
 ```
 
@@ -475,21 +481,21 @@ Verification : "sci-fi" apparait 3 fois (user 1 film 100, user 2 film 100, user 
 **Execution sur le fichier complet (blocs de 64 Mo) :**
 
 ```bash
-python ~/scripts/tag_usage_count.py -r hadoop \
+python ~/scripts/comptage_tags.py -r hadoop \
   --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
   hdfs:///user/maria_dev/cc2/input_64mb/tags.csv \
-  -o hdfs:///user/maria_dev/cc2/output/q4_tag_usage_count
+  -o hdfs:///user/maria_dev/cc2/output/q4_comptage_tags
 ```
 
 **Recuperation des resultats :**
 
 ```bash
-hdfs dfs -getmerge /user/maria_dev/cc2/output/q4_tag_usage_count q4_tag_usage_count.txt
+hdfs dfs -getmerge /user/maria_dev/cc2/output/q4_comptage_tags q4_comptage_tags.txt
 ```
 
 **Analyse :** Le job a identifie **65 414 tags uniques** (Reduce output records). Le fichier de resultats contient la frequence d'utilisation de chaque tag. Ce fichier etant volumineux, il est disponible sur le repo GitHub.
 
-> **Fichier resultat :** [q4_tag_usage_count.txt](https://github.com/Cordierarn/hadoop-cc2/blob/main/results/q4_tag_usage_count/q4_tag_usage_count.txt)
+> **Fichier resultat :** [q4_comptage_tags.txt](https://github.com/Cordierarn/hadoop-cc2/blob/main/results/q4_comptage_tags/q4_comptage_tags.txt)
 
 **Extrait des 20 premiers resultats :**
 
@@ -522,43 +528,43 @@ On observe une tres grande variete de tags : beaucoup sont des tags de niche uti
 
 ### Q5 - Pour chaque film, combien de tags le meme utilisateur a-t-il introduits ?
 
-**Script :** [`scripts/tags_per_user_movie.py`](scripts/tags_per_user_movie.py)
+**Script :** [`scripts/tags_par_utilisateur_film.py`](scripts/tags_par_utilisateur_film.py)
 
 ```python
 from mrjob.job import MRJob
 
-class TagsPerUserMovie(MRJob):
+class TagsParUtilisateurFilm(MRJob):
 
-    def mapper(self, _, line):
+    def mapper(self, _, ligne):
         try:
-            parts = line.split(',')
-            if parts[0] == 'userId':
+            elements = ligne.split(',')
+            if elements[0] == 'userId':
                 return  # ignorer l'en-tete
-            userId = parts[0]
-            movieId = parts[1]
-            yield (movieId + "\t" + userId), 1
+            id_utilisateur = elements[0]
+            id_film = elements[1]
+            yield (id_film + "\t" + id_utilisateur), 1
         except Exception:
             pass
 
-    def reducer(self, movie_user, counts):
-        yield movie_user, sum(counts)
+    def reducer(self, film_utilisateur, occurences):
+        yield film_utilisateur, sum(occurences)
 
 if __name__ == '__main__':
-    TagsPerUserMovie.run()
+    TagsParUtilisateurFilm.run()
 ```
 
 **Logique MapReduce :**
-- **Mapper** : pour chaque ligne, emet `(movieId + TAB + userId, 1)`. La cle composite `movieId\tuserId` permet de regrouper les tags par couple (film, utilisateur).
-- **Reducer** : somme les valeurs pour chaque couple `(movieId, userId)`, donnant le nombre de tags qu'un meme utilisateur a attribues a un meme film.
+- **Mapper** : pour chaque ligne, on cree une paire cle/valeur `(id_film + TAB + id_utilisateur, 1)`. La cle composite `id_film\tid_utilisateur` permet de regrouper les tags par couple (film, utilisateur).
+- **Reducer** : somme les valeurs pour chaque couple `(id_film, id_utilisateur)`, donnant le nombre de tags qu'un meme utilisateur a attribues a un meme film.
 
 > **Note :** Cette question doit etre executee avec le fichier charge avec des blocs de 64 Mo.
 
 **Test sur l'echantillon :**
 
 ```bash
-python ~/scripts/tags_per_user_movie.py -r hadoop \
+python ~/scripts/tags_par_utilisateur_film.py -r hadoop \
   --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
-  hdfs:///user/maria_dev/cc2/input/tags_sample.csv \
+  hdfs:///user/maria_dev/cc2/input/tags_test.csv \
   -o hdfs:///user/maria_dev/cc2/output/q5_sample
 ```
 
@@ -584,21 +590,21 @@ Verification : l'utilisateur 1 a mis 2 tags sur le film 100 (sci-fi, action), l'
 **Execution sur le fichier complet (blocs de 64 Mo) :**
 
 ```bash
-python ~/scripts/tags_per_user_movie.py -r hadoop \
+python ~/scripts/tags_par_utilisateur_film.py -r hadoop \
   --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
   hdfs:///user/maria_dev/cc2/input_64mb/tags.csv \
-  -o hdfs:///user/maria_dev/cc2/output/q5_tags_per_user_movie
+  -o hdfs:///user/maria_dev/cc2/output/q5_tags_par_utilisateur_film
 ```
 
 **Recuperation des resultats :**
 
 ```bash
-hdfs dfs -getmerge /user/maria_dev/cc2/output/q5_tags_per_user_movie q5_tags_per_user_movie.txt
+hdfs dfs -getmerge /user/maria_dev/cc2/output/q5_tags_par_utilisateur_film q5_tags_par_utilisateur_film.txt
 ```
 
 **Analyse :** Le job a produit **305 356 couples (film, utilisateur)** distincts (Reduce output records). Le fichier de resultats contient, pour chaque couple, le nombre de tags que cet utilisateur a attribues a ce film. Ce fichier etant volumineux, il est disponible sur le repo GitHub.
 
-> **Fichier resultat :** [q5_tags_per_user_movie.txt](https://github.com/Cordierarn/hadoop-cc2/blob/main/results/q5_tags_per_user_movie/q5_tags_per_user_movie.txt)
+> **Fichier resultat :** [q5_tags_par_utilisateur_film.txt](https://github.com/Cordierarn/hadoop-cc2/blob/main/results/q5_tags_par_utilisateur_film/q5_tags_par_utilisateur_film.txt)
 
 **Extrait des 20 premiers resultats :**
 
@@ -650,40 +656,40 @@ hdfs dfs -D dfs.blocksize=67108864 -put ml-25m/tags.csv /user/maria_dev/cc2/inpu
 
 ```bash
 # Q1 - Tags par film (config par defaut)
-python ~/scripts/tags_per_movie.py -r hadoop \
+python ~/scripts/tags_par_film.py -r hadoop \
   --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
   hdfs:///user/maria_dev/cc2/input/tags.csv \
-  -o hdfs:///user/maria_dev/cc2/output/q1_tags_per_movie
+  -o hdfs:///user/maria_dev/cc2/output/q1_tags_par_film
 
 # Q2 - Tags par utilisateur (config par defaut)
-python ~/scripts/tags_per_user.py -r hadoop \
+python ~/scripts/tags_par_utilisateur.py -r hadoop \
   --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
   hdfs:///user/maria_dev/cc2/input/tags.csv \
-  -o hdfs:///user/maria_dev/cc2/output/q2_tags_per_user
+  -o hdfs:///user/maria_dev/cc2/output/q2_tags_par_utilisateur
 
 # Q3 - Nombre de blocs
 hdfs fsck /user/maria_dev/cc2/input/tags.csv -files -blocks
 hdfs fsck /user/maria_dev/cc2/input_64mb/tags.csv -files -blocks
 
 # Q4 - Frequence d'utilisation des tags (blocs de 64 Mo)
-python ~/scripts/tag_usage_count.py -r hadoop \
+python ~/scripts/comptage_tags.py -r hadoop \
   --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
   hdfs:///user/maria_dev/cc2/input_64mb/tags.csv \
-  -o hdfs:///user/maria_dev/cc2/output/q4_tag_usage_count
+  -o hdfs:///user/maria_dev/cc2/output/q4_comptage_tags
 
 # Q5 - Tags par utilisateur par film (blocs de 64 Mo)
-python ~/scripts/tags_per_user_movie.py -r hadoop \
+python ~/scripts/tags_par_utilisateur_film.py -r hadoop \
   --hadoop-streaming-jar /usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar \
   hdfs:///user/maria_dev/cc2/input_64mb/tags.csv \
-  -o hdfs:///user/maria_dev/cc2/output/q5_tags_per_user_movie
+  -o hdfs:///user/maria_dev/cc2/output/q5_tags_par_utilisateur_film
 ```
 
 ### Recuperation des resultats
 
 ```bash
 # Recuperer les fichiers de resultats depuis HDFS
-hdfs dfs -getmerge /user/maria_dev/cc2/output/q1_tags_per_movie q1_tags_per_movie.txt
-hdfs dfs -getmerge /user/maria_dev/cc2/output/q2_tags_per_user q2_tags_per_user.txt
-hdfs dfs -getmerge /user/maria_dev/cc2/output/q4_tag_usage_count q4_tag_usage_count.txt
-hdfs dfs -getmerge /user/maria_dev/cc2/output/q5_tags_per_user_movie q5_tags_per_user_movie.txt
+hdfs dfs -getmerge /user/maria_dev/cc2/output/q1_tags_par_film q1_tags_par_film.txt
+hdfs dfs -getmerge /user/maria_dev/cc2/output/q2_tags_par_utilisateur q2_tags_par_utilisateur.txt
+hdfs dfs -getmerge /user/maria_dev/cc2/output/q4_comptage_tags q4_comptage_tags.txt
+hdfs dfs -getmerge /user/maria_dev/cc2/output/q5_tags_par_utilisateur_film q5_tags_par_utilisateur_film.txt
 ```
